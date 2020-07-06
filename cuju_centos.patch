@@ -1,0 +1,120 @@
+diff --git a/migration/migration.c b/migration/migration.c
+index 60e2fd7..cdb43b2 100644
+--- a/migration/migration.c
++++ b/migration/migration.c
+@@ -622,7 +622,8 @@ void cuju_migration_fd_process_incoming(QEMUFile **f)
+     Coroutine *co = qemu_coroutine_create(process_incoming_migration_co, f);
+ 
+     migrate_decompress_threads_create();
+-    for (int i=0; i<4; i++) {
++    int i;
++    for (i=0; i<4; i++) {
+         qemu_file_set_blocking(f[i], false);
+     }
+     qemu_coroutine_enter(co);
+@@ -652,7 +653,8 @@ void migration_channel_process_incoming(MigrationState *s,
+ void cuju_migration_channel_process_incoming(MigrationState *s,
+                                         QIOChannelSocket **ioc)
+ {
+-    for (int i=0; i<4; i++) {
++    int i;
++    for (i=0; i<4; i++) {
+         trace_migration_set_incoming_channel(
+             QIO_CHANNEL(ioc[i]), object_get_typename(OBJECT(QIO_CHANNEL(ioc[i]))));
+     }
+@@ -668,7 +670,7 @@ void cuju_migration_channel_process_incoming(MigrationState *s,
+         }
+     } else {
+         QEMUFile *f[4];
+-        for (int i=0; i<4; i++) {
++        for (i=0; i<4; i++) {
+             f[i] = qemu_fopen_channel_input(QIO_CHANNEL(ioc[i]));
+         }
+         cuju_migration_fd_process_incoming(f);
+@@ -707,7 +709,8 @@ void cuju_migration_channel_connect(MigrationState *s,
+                                const char *hostname)
+ {
+     MigrationState *s2 = migrate_by_index(1);
+-    for (int i=0; i<4; i++) {
++    int i;
++    for (i=0; i<4; i++) {
+         trace_migration_set_outgoing_channel(
+             ioc[i], object_get_typename(OBJECT(ioc[i])), hostname);
+     }
+@@ -723,7 +726,7 @@ void cuju_migration_channel_connect(MigrationState *s,
+         }
+     } else {
+         QEMUFile *f[4];
+-        for (int i=0; i<4; i++) {
++        for (i=0; i<4; i++) {
+             f[i] = qemu_fopen_channel_output(QIO_CHANNEL(ioc[i]));
+         }
+         QIOChannelSocket *sioc;
+@@ -2807,8 +2810,8 @@ static ssize_t cuju_ft_dev_writev_buffer(void *opaque, struct iovec *iov, int io
+ {
+     MigrationState *s = opaque;
+     ssize_t done = 0;
+-
+-    for(int i = 0; i < iovcnt; i++) {
++    int i;
++    for(i = 0; i < iovcnt; i++) {
+         size_t len = iov[i].iov_len;
+         uint8_t *data = iov[i].iov_base;
+ 
+diff --git a/migration/savevm.c b/migration/savevm.c
+index 0c68c7d..9817a95 100644
+--- a/migration/savevm.c
++++ b/migration/savevm.c
+@@ -2164,7 +2164,8 @@ qemu_loadvm_section_dev(QEMUFile *f, MigrationIncomingState *mis)
+ #ifdef ft_debug_mode_enable
+     printf("%s num %d\n", __func__, ftdev.state_entry_num);
+ #endif
+-    for (int i = 0; i < ftdev.state_entry_num; ++i) {
++    int i;
++    for (i = 0; i < ftdev.state_entry_num; ++i) {
+         int len = qemu_get_byte(f);
+         qemu_get_buffer(f, (uint8_t *)idstr, len);
+         idstr[len] = 0;
+@@ -2181,7 +2182,7 @@ qemu_loadvm_section_dev(QEMUFile *f, MigrationIncomingState *mis)
+         printf("%s %s %d %p\n", __func__, idstr, ftdev.state_entry_lens[i], &ftdev.state_entry_lens[i]);
+ 		#endif
+     }
+-    for (int i = 0; i < ftdev.state_entry_num; ++i) {
++    for (i = 0; i < ftdev.state_entry_num; ++i) {
+         se = ftdev.state_entries[i];
+         int len = ftdev.state_entry_lens[i];
+         if (len > se->state_buf_size) {
+diff --git a/migration/socket.c b/migration/socket.c
+index 64e3af3..89f23f9 100644
+--- a/migration/socket.c
++++ b/migration/socket.c
+@@ -182,7 +182,8 @@ static void cuju_socket_start_outgoing_migration(MigrationState *s,
+     QIOChannelSocket *sioc[4];
+     const char *channel_name[4] = {"cuju-dev-outgoing1", "cuju-ram-outgoing1", "cuju-dev-outgoing2", "cuju-ram-outgoing2"};
+     struct SocketConnectData *data[4];
+-    for (int i=0; i<4; i++) {
++    int i;
++    for (i=0; i<4; i++) {
+         sioc[i] = qio_channel_socket_new();
+         data[i] = g_new0(struct SocketConnectData, 1);
+         data[i]->s = s;
+@@ -217,7 +218,7 @@ static void cuju_socket_start_outgoing_migration(MigrationState *s,
+ 
+     cuju_migration_channel_connect(data[0]->s, sioc, data[0]->hostname);
+ out:
+-    for (int i=0; i<4; i++) {
++    for (i=0; i<4; i++) {
+         object_unref(OBJECT(sioc[i]));
+         socket_connect_data_free(data[i]);
+     }
+@@ -334,8 +335,8 @@ static gboolean cuju_socket_accept_incoming_migration(QIOChannel *ioc,
+     Error *err = NULL;
+     const char *channel_name[4] = {"cuju-dev-incoming1", "cuju-ram-incoming1",
+                                 "cuju-dev-incoming2", "cuju-ram-incoming2"};
+-
+-    for (int i=0; i<4; i++) {
++    int i;
++    for (i=0; i<4; i++) {
+         sioc[i] = qio_channel_socket_accept(QIO_CHANNEL_SOCKET(ioc),
+                                      &err);
+         if (!sioc[i]) {
